@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
-
+import torch.nn.functional as F
 class ResnetPGDAttacker:
     def __init__(self, model, dataloader: DataLoader):
         '''
@@ -42,30 +42,41 @@ class ResnetPGDAttacker:
             alpha = self.alpha
         if steps is None:
             steps = self.steps
+
         images = image.clone().detach().to(self.device)
         adv_images = images.clone()
         labels = label.clone().detach().to(self.device)
 
-        # Starting at a uniformly random point within eps ball
-        pass  # TODO
+        # Starting at a uniformly random point within the eps ball
+        random_noise = torch.zeros_like(adv_images).uniform_(-eps, eps)
+        adv_images = adv_images + random_noise
 
         for _ in range(steps):
+            # Enable gradient tracking for adversarial images
             adv_images.requires_grad = True
+
+            # Get model predictions and apply softmax
             outputs = self.model(adv_images).softmax(1)
+
             # Calculate loss
             loss = self.loss_fn(outputs, labels)
+
             # Compute gradient wrt images
             grad = torch.autograd.grad(
                 loss, adv_images, retain_graph=False, create_graph=False
             )[0]
             adv_images = adv_images.detach()
+
             # Gradient update
-            pass  # TODO
+            adv_images = adv_images + alpha * grad.sign()  # Update adversarial images using the sign of the gradient
+
             # Projection step
-            pass  # TODO
+            # Clamping the adversarial images to ensure they are within the L∞ ball of eps radius of original image
+            adv_images = torch.clamp(adv_images, images - eps, images + eps)
+
             adv_images = adv_images.detach()
 
-        return adv_images
+        return adv_images  # Return the generated adversarial images
 
     def pgd_batch_attack(self, eps, alpha, steps, batch_num):
         '''

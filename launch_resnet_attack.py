@@ -71,15 +71,14 @@ dset_classes = weights.meta["categories"]
 attacker = ResnetPGDAttacker(model, dset_loader)
 
 if args.test:
-    print(f"===Testing on {BATCH_NUM if BATCH_NUM else "all"} batches of data===")
+    print(f"===Testing on {BATCH_NUM if BATCH_NUM else 'all'} batches of data===")
     attacker.compute_accuracy(BATCH_NUM)
     print(f"Accuracy on original images: {attacker.acc * 100}%")
     torch.save({
         'acc': attacker.acc,
     }, RESULTS_PATH)
-
 else:
-    print(f"===Launching PGD attack on {BATCH_NUM if BATCH_NUM else "all"} batches of data===")
+    print(f"===Launching PGD attack on {BATCH_NUM if BATCH_NUM else 'all'} batches of data===")
     print(f"Attack configs: eps = {EPS}, alpha = {ALPHA}, steps = {STEPS}, batch size = {BATCH_SIZE}")
 
     attacker.pgd_batch_attack(EPS, ALPHA, STEPS, BATCH_NUM)
