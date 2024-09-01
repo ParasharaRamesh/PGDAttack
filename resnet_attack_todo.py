@@ -3,7 +3,6 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
-import torch.nn.functional as F
 class ResnetPGDAttacker:
     def __init__(self, model, dataloader: DataLoader):
         '''
