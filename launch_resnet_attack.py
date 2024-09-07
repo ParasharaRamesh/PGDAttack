@@ -91,3 +91,4 @@ else:
         'adv_images': attacker.adv_images,
         'labels': attacker.labels,
     }, RESULTS_PATH)
+
