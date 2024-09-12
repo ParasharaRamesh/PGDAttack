@@ -262,12 +262,10 @@ def remove_prefix_from_state_dict(ckpt_path, new_ckpt_path, prefix='model.'):
 
 
 if __name__ == '__main__':
-    # tensor = torch.zeros(3,224,224)
-    # zero_tensor = torch.zeros(3,224,224)
-    # assert not torch.equal(tensor, torch.zeros_like(tensor)), "Tensor is all zeros"
     BATCH_SIZE = 4
-    BATCH_NUM = 250
+    # BATCH_NUM = 250
 
+    # 1. Creating dataset locally (optional)
     # creating local dataset for evaluation
     # eval_dataset_generator = EvaluationDatasetGenerator(batch_size=BATCH_SIZE,
     #                                                     batch_num=BATCH_NUM,
@@ -275,57 +273,74 @@ if __name__ == '__main__':
     #                                                     save_path="./perturbed",
     #                                                     no_perturbations=False)
     # eval_dataset_generator.generate()
-    # #TODO. checking if the normal load_dataset is uniform generating!
-    # exit(0)
+
+    # 2. changing the checkpoints appropriately
+
     # evaluating the models
+    checkpoint_crazy_path = "./checkpoints/ft-stream-crazy-epoch-9.ckpt"
+
     checkpoint_normal_path = "./checkpoints/ft-checkpoint.ckpt"
+    new_checkpoint_normal_path = "./modified_checkpoints/ft-checkpoint.ckpt"
+
     checkpoint_pgd_path = "./checkpoints/ft-pgd-checkpoint.ckpt"
+    new_checkpoint_pgd_path = "./modified_checkpoints/ft-pgd-checkpoint.ckpt"
 
-    perturbed_data_path="./perturbed"
-    clean_data_path="./clean"
-    drive_path="./drive"
-    new_data_path="./data_gen_test"
+    checkpoint_stream_path = "./checkpoints/ft-stream-checkpoint.ckpt"
+    new_checkpoint_stream_path = "./modified_checkpoints/ft-stream-checkpoint.ckpt"
 
-    # to_evaulate = [clean_data_path]
-    to_evaulate = [new_data_path]
-    # to_evaulate = [perturbed_data_path, clean_data_path, drive_path]
+    checkpoint_stream2_path = "./checkpoints/ft-stream-checkpoint-v1.ckpt"
+    new_checkpoint_stream2_path = "./modified_checkpoints/ft-stream-checkpoint-v1.ckpt"
+
+
+    # remove_prefix_from_state_dict(checkpoint_normal_path, new_checkpoint_normal_path)
+    # remove_prefix_from_state_dict(checkpoint_pgd_path, new_checkpoint_pgd_path)
+    # remove_prefix_from_state_dict(checkpoint_stream_path, new_checkpoint_stream_path)
+    # remove_prefix_from_state_dict(checkpoint_stream2_path, new_checkpoint_stream2_path)
+
+    # evaluation
+    perturbed_data_path = "./perturbed"
+    clean_data_path = "./clean"
+    gen_data_path = "./gen_data"
+    drive_path = "./drive"
+
+    to_evaulate = [drive_path, perturbed_data_path, clean_data_path, gen_data_path]
     for path in to_evaulate:
-        print(f"path to evaluate is {path}")
+        print(f"0. path to evaluate is {path}")
         local_dataset = LocalDataset(root_dir=path)
 
-        print(f"Evaluating model")
-        local_ft_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
-        evaluation_ft = Evaluation(checkpoint_normal_path, local_ft_loader, evaluate_original=True, evaluate_finetuned=False)
-        evaluation_ft.evaluate_model()
+        print(f"0. Evaluating the crazy stream model")
+        local_stream_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
+        evaluation_stream = Evaluation(checkpoint_crazy_path, local_stream_loader, evaluate_original=True,
+                                    evaluate_finetuned=True)
+        evaluation_stream.evaluate_model()
 
-        # print(f"Evaluating the pgd model")
+
+        # print(f"1. Evaluating the stream v0 model")
+        # local_stream_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
+        # evaluation_stream = Evaluation(new_checkpoint_stream_path, local_stream_loader, evaluate_original=True,
+        #                             evaluate_finetuned=True)
+        # evaluation_stream.evaluate_model()
+
+        # print(f"2. Evaluating the stream v1 model")
+        # local_stream2_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
+        # evaluation_stream2 = Evaluation(new_checkpoint_stream2_path, local_stream2_loader, evaluate_original=True,
+        #                             evaluate_finetuned=True)
+        # evaluation_stream2.evaluate_model()
+        #
+        #
+        #
+        # print(f"3. Evaluating model")
+        # local_ft_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
+        # evaluation_ft = Evaluation(new_checkpoint_normal_path, local_ft_loader, evaluate_original=True,
+        #                            evaluate_finetuned=True)
+        # evaluation_ft.evaluate_model()
+        #
+        # print(f"4. Evaluating the pgd model")
         # local_pgd_loader = DataLoader(local_dataset, batch_size=BATCH_SIZE)
-        # evaluation_pgd = Evaluation(checkpoint_normal_path, local_pgd_loader, evaluate_original=True, evaluate_finetuned=False)
+        # evaluation_pgd = Evaluation(new_checkpoint_pgd_path, local_pgd_loader, evaluate_original=True,
+        #                             evaluate_finetuned=True)
         # evaluation_pgd.evaluate_model()
+
+
         print("-" * 50)
 
-
-'''
-TODO. thoughts:
-. Ensure dataloaders dont have any num workers or shuffle ( shuffle is actually okay but just to be safe )
-. Generate clean data and check accuracy of original and new models X (getting high accruacy & poor in finetuned) 
-    => have to retrain anyways
-. On bad data check accuracy as well X => (poor accuracy for both models )
-    => meaning current generation process locally is correct as the original model has bad accuracy, finetuned model is shit anyways
-. Data in drive bad - check 2 zips locally => (data is not all zeros, getting very high accuracy in ft and avg in original) 
-    => dataset creation was not done correctly!?
-    => should be low in original model but is high instead
-    => training has clearly confused the model someway 
-. when generating the drive data, I didnt do model.eval() maybe thats a problem? -> try generating something locally that way 
-    * gives bad accuracy correctly irrespective of the model.eval() in todo
-. dont do any augmentations just generate like shit tons , is it evenly distributed? 
-    -> maybe as long as we use only one dataset it is evenly distributed..
-    -> perhaps better to just generate with one dataloader and zip things up.
-    
-
-. unzipping might be a problem with crucial folder being removed?
-. Dataloader could be bad in colab notebook - check locally
-. Regenerate
-
-
-'''
