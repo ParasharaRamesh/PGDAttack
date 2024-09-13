@@ -49,7 +49,6 @@ class ResnetPGDAttacker:
         # Starting at a uniformly random point within the eps ball
         random_noise = torch.zeros_like(adv_images).uniform_(-eps, eps)
         adv_images = adv_images + random_noise
-        self.model.eval() # setting to eval mode
 
         for _ in range(steps):
             # Enable gradient tracking for adversarial images
