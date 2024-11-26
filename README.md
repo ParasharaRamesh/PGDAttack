@@ -1,3 +1,3 @@
-# CS5562-HW1
-
-This is the first homework assignment for CS5562 Trustworthy ML. Please clone this repo or download all the Python files and proceed with the instructions on the PDF. 
+This repository contains code for the first assignment of CS5562 Trustworthy ML taken at NUS.
+1. q3/resnet_attack_todo.py : Implements the Projected Gradient Descent Attack
+2. ./*.ipyb: Implements various strategies for training models which attempts to train a resnet model robust to data corrupted using the Projected Gradient Descent Attack
